@@ -62,17 +62,21 @@ class AMQPConnector:
     def replay(self, routing_key, body, props, headers):
         if routing_key or self.exchange_type != "topic":
             properties = pika.BasicProperties(headers=headers, **props)
+            self.check_priority_properties(properties)
             self.channel.basic_publish(self.exchange, routing_key, body, properties=properties)
         
     def try_forward_with_prefix(self, routing_key, body, props, headers):
         if self.exchange_forward_prefix:
             properties = pika.BasicProperties(headers=headers, **props)
-            if properties and hasattr(properties, 'priority'):
-                try:
-                    properties.priority = int(properties.priority)
-                except (ValueError, TypeError):
-                    properties.priority = 0                    
+            self.check_priority_properties(properties)                    
             self.channel.basic_publish(self.exchange_forward, self.exchange_forward_prefix + "." + routing_key, body, properties=properties)
+
+    def check_priority_properties(self, properties):
+        if properties and hasattr(properties, 'priority'):
+            try:
+                properties.priority = int(properties.priority)
+            except (ValueError, TypeError):
+                properties.priority = 0
         
     def sendTerminateMessage(self):
         try:
