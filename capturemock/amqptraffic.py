@@ -67,6 +67,11 @@ class AMQPConnector:
     def try_forward_with_prefix(self, routing_key, body, props, headers):
         if self.exchange_forward_prefix:
             properties = pika.BasicProperties(headers=headers, **props)
+            if properties and hasattr(properties, 'priority'):
+                try:
+                    properties.priority = int(properties.priority)
+                except (ValueError, TypeError):
+                    properties.priority = 0                    
             self.channel.basic_publish(self.exchange_forward, self.exchange_forward_prefix + "." + routing_key, body, properties=properties)
         
     def sendTerminateMessage(self):
@@ -186,7 +191,8 @@ class AMQPTraffic(traffic.Traffic):
         props = {}
         for key, value in sorted(basic_properties.__dict__.items()):
             if key not in ["timestamp", "headers"]:
-                if key == "priority" and value is None:
+                if key == "priority" and (value is None or not isinstance(value, int)):
+                    # Convert None or invalid priority to default 0
                     props[key] = "0"
                 elif value != self.default_props.get(key):
                     props[key] = str(value)
