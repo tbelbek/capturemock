@@ -185,8 +185,11 @@ class AMQPTraffic(traffic.Traffic):
     def make_props_dict(self, basic_properties):
         props = {}
         for key, value in sorted(basic_properties.__dict__.items()):
-            if key not in [ "timestamp", "headers" ] and value != self.default_props.get(key):
-                props[key] = str(value)
+            if key not in ["timestamp", "headers"]:
+                if key == "priority" and value is None:
+                    props[key] = "0"
+                elif value != self.default_props.get(key):
+                    props[key] = str(value)
         return props
             
     def exchange_routing_key(self, rcHandler):
