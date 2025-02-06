@@ -172,7 +172,10 @@ class AMQPTraffic(traffic.Traffic):
                     timestamp = datetime.now().isoformat()
             for header, value in sorted(props.headers.items()):
                 if header != "timestamp":
-                    text += self.headerStr + header + "=" + value
+                    if isinstance(value, bytes):
+                        text += self.headerStr + header + "=" + encodingutils.decodeBytes(value)
+                    else:
+                        text += self.headerStr + header + "=" + value
                 if header == "originfile":
                     self.origin = value
         elif record_timestamps:
