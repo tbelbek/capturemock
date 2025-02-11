@@ -108,21 +108,20 @@ class ReplayInfo:
                 intermediate.insert(0, responseHandler)
         currResponseHandler.addIntermediate(intermediate)
 
-    @staticmethod
-    def open_extended(filename, mode='r'):
-        """Opens a file with latin-1"""
-        return open(filename, mode=mode, encoding='latin-1')
-            
-
     @classmethod
     def readIntoList(cls, replayFile):
-        """Reads replay file contents into a list, handling encoding issues"""
         trafficList = []
-        with cls.open_extended(replayFile) as f:
+        currTraffic = ""
+        with open(replayFile, newline=None) as f:
             for line in f:
-                line = line.rstrip()
-                if line and not line.startswith("#"):
-                    trafficList.append(line)
+                prefix = line.split(":")[0]
+                if len(prefix) < 10 and (prefix.startswith("<-") or prefix[-5:-3] == "->"):
+                    if currTraffic:
+                        trafficList.append(currTraffic.rstrip("\n"))
+                    currTraffic = ""
+                currTraffic += line
+        if currTraffic:
+            trafficList.append(currTraffic.rstrip("\n"))
         return trafficList
 
     def readReplayResponses(self, traffic, allClasses, exact=False):
