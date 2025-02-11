@@ -112,14 +112,23 @@ class ReplayInfo:
     def readIntoList(cls, replayFile):
         trafficList = []
         currTraffic = ""
-        with open(replayFile, newline=None) as f:
+        
+        def decode_line(line):
+            try:
+                return line.decode('utf-8')
+            except UnicodeDecodeError:
+                return line.decode('utf-8', errors='backslashreplace')
+        
+        with open(replayFile, 'rb') as f:
             for line in f:
+                line = decode_line(line)
                 prefix = line.split(":")[0]
                 if len(prefix) < 10 and (prefix.startswith("<-") or prefix[-5:-3] == "->"):
                     if currTraffic:
                         trafficList.append(currTraffic.rstrip("\n"))
                     currTraffic = ""
                 currTraffic += line
+                
         if currTraffic:
             trafficList.append(currTraffic.rstrip("\n"))
         return trafficList
