@@ -880,7 +880,13 @@ class ReplayOnlyDispatcher(ServerDispatcherBase):
             traffic = self.parseClientTraffic(text, **kw)
             responses = self.process(traffic, i + 1)
             for currId in self.extractIdsFromResponses(responses):
-                if currId not in recorded_ids:
+                
+                is_empty_guid = currId and (
+                    all(c in '0-' for c in currId) or  # Checks 36-char UUID
+                    all(c == '0' for c in currId)       # Checks 24-char hex
+                )
+                
+                if currId not in recorded_ids and not is_empty_guid:
                     recorded_ids.append(currId)
                     replay_id = self.replay_ids.pop(0)
                     self.diag.debug("Adding ID mapping from " + replay_id + " to " + currId)
