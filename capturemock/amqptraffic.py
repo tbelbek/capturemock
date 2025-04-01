@@ -151,7 +151,7 @@ class AMQPTraffic(traffic.Traffic):
     typeId = "RMQ"
     headerStr = "\n--HEA:"
     connector = None
-    default_props = { "delivery_mode": 2, "priority": 0 }
+    default_props = { "delivery_mode": 2 }
     def __init__(self, text=None, responseFile=None, rcHandler=None, routing_key=None, body=b"", origin=None, props=None):
         self.replay = routing_key is None
         self.origin = origin
